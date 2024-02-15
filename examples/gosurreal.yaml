@@ -1,0 +1,16 @@
+database:
+    connection:
+        name: root
+        namespace: root
+        password: root
+        user: root
+        
+folders:
+    database:
+        events: database/events
+        migrations: database/migrations
+        schemas: database/schemas
+        
+networks:
+    websocket:
+        endpoint: ws://localhost:8000/rpc

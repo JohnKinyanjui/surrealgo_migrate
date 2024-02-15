@@ -1,0 +1,158 @@
+package app
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+
+	"github.com/mitchellh/mapstructure"
+	"github.com/spf13/viper"
+	"github.com/surrealdb/surrealdb.go"
+)
+
+type Migrator struct {
+	db  *surrealdb.DB `yaml:"-"`
+	err error         `yaml:"-"`
+
+	DatabaseConfig struct {
+		Connection struct {
+			User      string `yaml:"user"`
+			Password  string `yaml:"password"`
+			Name      string `yaml:"name"`
+			Namespace string `yaml:"namespace"`
+		} `yaml:"connection"`
+	} `yaml:"database"`
+	FoldersConfig struct {
+		Database struct {
+			Migrations string `yaml:"migrations"`
+			Schemas    string `yaml:"schemas"`
+			Events     string `yaml:"events"`
+		} `yaml:"database"`
+	} `yaml:"folders"`
+	NetworksConfig struct {
+		Websocket struct {
+			Endpoint string `yaml:"endpoint"`
+		} `yaml:"websocket"`
+	} `yaml:"networks"`
+}
+
+func Migrate() *Migrator {
+	viper.SetConfigName("gosurreal")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+
+	err := viper.ReadInConfig()
+	var migrator Migrator
+	if err := viper.Unmarshal(&migrator, viper.DecoderConfigOption(func(decoderConfig *mapstructure.DecoderConfig) {
+		decoderConfig.TagName = "yaml"
+	})); err != nil {
+		fmt.Println("Make sure you run 'gosurreal init' ")
+	}
+
+	migrator.err = err
+	return &migrator
+}
+
+func (mg *Migrator) Initialize() *Migrator {
+	err := mg.getDatabase()
+	if err != nil {
+		log.Fatalf("unable to connect to database reason: %s", err.Error())
+	}
+
+	_, err = mg.db.Query(fmt.Sprintf(`
+	if (select count() from surreal_migrations) = 0 {
+		return create %s content {
+			"updated_at": time::now(),
+			"last_migration_id" : "0"
+		};
+	})
+	`, migration_table), nil)
+
+	if err != nil {
+		log.Fatalf("unable to start migrations error: %s", err.Error())
+	}
+
+	return mg
+}
+
+func (mg *Migrator) InitConfig() {
+
+	checkConfig()
+
+}
+
+func (mg *Migrator) Up() {
+	if mg.db == nil {
+		log.Fatalf("make sure the database is connected")
+	}
+	log.Println("migrating up")
+	// List all files in the migration folder recursively
+	files := []string{}
+	err := filepath.Walk(mg.FoldersConfig.Database.Migrations, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() && strings.HasSuffix(info.Name(), ".up.surql") {
+			files = append(files, path)
+		}
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	migration, err := mg.getMigration()
+	if err != nil {
+		return
+	}
+	current, _ := strconv.Atoi(migration.LastMigrationId)
+
+	// Print the list of files
+	for _, file := range files {
+		fileName := filepath.Base(file)
+		migrationName := strings.Split(fileName, "_")[0]
+		timestamp, _ := strconv.Atoi(migrationName)
+
+		if timestamp > current {
+			content, err := os.ReadFile(file)
+			if err != nil {
+				fmt.Println("Error reading file:", err)
+				return
+			}
+
+			text := string(content)
+
+			_, err = mg.db.Query(fmt.Sprintf(`
+        begin transaction;
+
+		update surreal_migrations:initial SET last_migration_id = $last_migration_id;
+
+        %s
+
+        commit transaction;
+        `, text), map[string]string{
+				"last_migration_id": migrationName,
+			})
+			if err != nil {
+				log.Fatalf("unable to migrate %s reason: %s", migrationName, err.Error())
+				return
+			}
+
+			log.Printf("%s migrated successfully \n", migrationName)
+		}
+	}
+}
+
+func (mg *Migrator) New(migration string) {
+	if mg.err != nil {
+		log.Println("unable to get configuration error: ", mg.err.Error())
+		return
+	}
+
+	mg.createNewMigration(migration)
+}
+
+func (mg *Migration) Down(migration *string) {}
