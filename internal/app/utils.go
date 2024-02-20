@@ -2,7 +2,11 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -10,6 +14,30 @@ import (
 const (
 	migration_table = "surreal_migrations:initial"
 )
+
+func defaultConfig() map[string]interface{} {
+	return map[string]interface{}{
+		"database": map[string]interface{}{
+			"connection": map[string]string{
+				"user":      "root",
+				"password":  "root",
+				"name":      "root",
+				"namespace": "root",
+			},
+		},
+		"folders": map[string]interface{}{
+			"database": map[string]string{
+				"migrations": "database/migrations",
+				"events":     "database/events",
+			},
+		},
+		"networks": map[string]interface{}{
+			"websocket": map[string]string{
+				"endpoint": "ws://localhost:8000/rpc",
+			},
+		},
+	}
+}
 
 func checkConfig() {
 	// Check if the file exists
@@ -36,26 +64,34 @@ func checkConfig() {
 	}
 }
 
-func defaultConfig() map[string]interface{} {
-	return map[string]interface{}{
-		"database": map[string]interface{}{
-			"connection": map[string]string{
-				"user":      "root",
-				"password":  "root",
-				"name":      "root",
-				"namespace": "root",
-			},
-		},
-		"folders": map[string]interface{}{
-			"database": map[string]string{
-				"migrations": "database/migrations",
-				"events":     "database/events",
-			},
-		},
-		"networks": map[string]interface{}{
-			"websocket": map[string]string{
-				"endpoint": "ws://localhost:8000/rpc",
-			},
-		},
+func (mg *Migrator) findPreviousMigration(migrations []int, target int) (int, error) {
+	for i, num := range migrations {
+		if num == target {
+			if i == 0 {
+				// Target is the first element, no previous exists
+				return 0, nil
+			}
+			return migrations[i-1], nil
+		}
 	}
+
+	// Target not found in the list
+	return 0, fmt.Errorf("migration %d not found in the list", target)
+}
+
+func (mg *Migrator) getMigrations(files []string) []int {
+	migrations := make([]int, 0)
+
+	for _, file := range files {
+		fileName := filepath.Base(file)
+		migrationName := strings.Split(fileName, "_")[0]
+		timestamp, err := strconv.Atoi(migrationName)
+		if err != nil {
+			log.Fatalf("currently only supports timestamps")
+		}
+
+		migrations = append(migrations, timestamp)
+	}
+
+	return migrations
 }

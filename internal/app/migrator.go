@@ -58,6 +58,7 @@ func Migrate() *Migrator {
 
 func (mg *Migrator) Initialize() *Migrator {
 	err := mg.getDatabase()
+
 	if err != nil {
 		log.Fatalf("unable to connect to database reason: %s", err.Error())
 	}
@@ -66,7 +67,8 @@ func (mg *Migrator) Initialize() *Migrator {
 	if (select count() from surreal_migrations) = 0 {
 		return create %s content {
 			"updated_at": time::now(),
-			"last_migration_id" : "0"
+			"last_migration_id" : "0",
+			"last_event_id": "0"
 		};
 	})
 	`, migration_table), nil)
@@ -79,71 +81,7 @@ func (mg *Migrator) Initialize() *Migrator {
 }
 
 func (mg *Migrator) InitConfig() {
-
 	checkConfig()
-
-}
-
-func (mg *Migrator) Up() {
-	if mg.db == nil {
-		log.Fatalf("make sure the database is connected")
-	}
-	log.Println("migrating up")
-	// List all files in the migration folder recursively
-	files := []string{}
-	err := filepath.Walk(mg.FoldersConfig.Database.Migrations, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() && strings.HasSuffix(info.Name(), ".up.surql") {
-			files = append(files, path)
-		}
-		return nil
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	migration, err := mg.getMigration()
-	if err != nil {
-		return
-	}
-	current, _ := strconv.Atoi(migration.LastMigrationId)
-
-	// Print the list of files
-	for _, file := range files {
-		fileName := filepath.Base(file)
-		migrationName := strings.Split(fileName, "_")[0]
-		timestamp, _ := strconv.Atoi(migrationName)
-
-		if timestamp > current {
-			content, err := os.ReadFile(file)
-			if err != nil {
-				fmt.Println("Error reading file:", err)
-				return
-			}
-
-			text := string(content)
-
-			_, err = mg.db.Query(fmt.Sprintf(`
-        begin transaction;
-
-		update surreal_migrations:initial SET last_migration_id = $last_migration_id;
-
-        %s
-
-        commit transaction;
-        `, text), map[string]string{
-				"last_migration_id": migrationName,
-			})
-			if err != nil {
-				log.Fatalf("unable to migrate %s reason: %s", migrationName, err.Error())
-				return
-			}
-
-			log.Printf("%s migrated successfully \n", migrationName)
-		}
-	}
 }
 
 func (mg *Migrator) New(migration string) {
@@ -155,4 +93,90 @@ func (mg *Migrator) New(migration string) {
 	mg.createNewMigration(migration)
 }
 
-func (mg *Migration) Down(migration *string) {}
+func (mg *Migrator) Exec(migrationType string, folder string) {
+	if mg.db == nil {
+		log.Fatalf("make sure the database is connected")
+	}
+
+	files := []string{}
+	err := filepath.Walk(mg.FoldersConfig.Database.Migrations, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		extenstion := ".up.surql"
+		if migrationType != "up" {
+			extenstion = ".down.surql"
+		}
+
+		if !info.IsDir() && strings.HasSuffix(info.Name(), extenstion) {
+			files = append(files, path)
+		}
+		return nil
+	})
+	if err != nil {
+		log.Fatal("unable to get files reason: ", err)
+	}
+
+	migration, err := mg.getMigration()
+	if err != nil {
+		return
+	}
+	current, _ := strconv.Atoi(migration.LastMigrationId)
+	migrations := mg.getMigrations(files)
+
+	for _, file := range files {
+		fileName := filepath.Base(file)
+		migrationName := strings.Split(fileName, "_")[0]
+		timestamp, _ := strconv.Atoi(migrationName)
+
+		if migrationType == "up" {
+			if timestamp > current {
+				mg.Migrate(fileName, migrationName, migrationType)
+			}
+		} else if migrationType == "down" {
+			if current != 0 {
+				log.Println("No available migrations to be migrated down")
+			} else {
+				if migration.LastMigrationId == fileName {
+					newMigraionName, err := mg.findPreviousMigration(migrations, current)
+					if err != nil {
+						log.Fatal("unable to migrate down reason: ", err)
+						return
+					}
+
+					mg.Migrate(fileName, strconv.Itoa(newMigraionName), migrationType)
+				}
+			}
+		}
+	}
+
+}
+
+func (mg *Migrator) Migrate(file, migrationName, migrationType string) {
+	content, err := os.ReadFile(file)
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return
+	}
+
+	text := string(content)
+
+	_, err = mg.db.Query(fmt.Sprintf(`
+				begin transaction;
+	
+				update surreal_migrations:initial SET last_migration_id = $last_migration_id;
+	
+				%s
+	
+				commit transaction;
+			`, text), map[string]string{
+		"last_migration_id": migrationName,
+	})
+	if err != nil {
+		log.Fatalf("unable to migrate %s reason: %s", migrationName, err.Error())
+		return
+	}
+
+	log.Printf("%s migrated %s successfully \n", migrationName, migrationType)
+}
