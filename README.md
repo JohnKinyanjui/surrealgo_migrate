@@ -3,6 +3,10 @@
 
 This tool streamlines migrations for your SurrealDB database. It makes managing structural changes to your database easy and organized.
 
+## Installation
+```bash
+    go install github.com/JohnKinyanjui/surrealgo_migrate@latest
+```
 Key Commands
 
 1. Init: Initializes a project to use surrealgo_migrate.This create a config file which you can add your database url, credentials and also the folder stucture:
