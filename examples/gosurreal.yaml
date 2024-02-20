@@ -9,7 +9,6 @@ folders:
     database:
         events: database/events
         migrations: database/migrations
-        schemas: database/schemas
         
 networks:
     websocket:
