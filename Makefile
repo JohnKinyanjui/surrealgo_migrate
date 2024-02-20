@@ -3,3 +3,6 @@ build:
 
 test:
 	cd ./examples && ./examples/bin/main init
+
+install:
+	go install
