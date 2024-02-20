@@ -1,8 +1,11 @@
+#
 init:
-	./bin/main init
+	surrealgo_migrate init
 
+# used to create new migrations 
 migrations-new:
-	./bin/main migrations new add_users
+	surrealgo_migrate migrations new add_users
 
+# used to run applications up
 migrations-up:
-	./bin/main migrations up
+	surrealgo_migrate migrations up
