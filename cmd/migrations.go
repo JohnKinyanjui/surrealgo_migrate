@@ -12,14 +12,9 @@ import (
 
 // migrationsCmd represents the migrations command
 var migrationsCmd = &cobra.Command{
-	Use:   "migrations",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:        "migrations",
+	Short:      "Provides sets of commands to run migrations like  'new' ,'up' and 'down' ",
+	Long:       ``,
 	ArgAliases: []string{"new", "up", "down"},
 	Run: func(cmd *cobra.Command, args []string) {
 		var migrator = app.Migrate()
@@ -33,7 +28,9 @@ to quickly create a Cobra application.`,
 			}
 
 		} else if args[0] == "up" {
-			migrator.Initialize().Up()
+			migrator.Initialize().Exec("up", "migrations")
+		} else if args[0] == "down" {
+			migrator.Initialize().Exec("down", "migrations")
 		}
 	},
 }
