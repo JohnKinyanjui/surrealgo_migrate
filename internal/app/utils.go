@@ -17,6 +17,7 @@ const (
 
 func defaultConfig() map[string]interface{} {
 	return map[string]interface{}{
+		"endpoint": "ws://localhost:8000/rpc",
 		"database": map[string]string{
 			"user":      "root",
 			"password":  "root",
@@ -26,9 +27,6 @@ func defaultConfig() map[string]interface{} {
 		"folders": map[string]string{
 			"migrations": "database/migrations",
 			"events":     "database/events",
-		},
-		"networks": map[string]string{
-			"endpoint": "ws://localhost:8000/rpc",
 		},
 	}
 }
