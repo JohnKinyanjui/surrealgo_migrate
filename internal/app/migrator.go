@@ -86,7 +86,6 @@ func (mg *Migrator) New(migration string) {
 }
 
 func (mg *Migrator) Exec(migrationType string, folderType string) {
-	log.Println("migrate up")
 	if mg.db == nil {
 		log.Fatalf("make sure the database is connected")
 	}
@@ -152,7 +151,7 @@ func (mg *Migrator) Exec(migrationType string, folderType string) {
 		}
 	}
 
-	if !migrated {
+	if !migrated && migrationType == "up" {
 		log.Println("No available migrations to be migrated up")
 	}
 
