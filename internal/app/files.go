@@ -36,8 +36,8 @@ func (mg *Migrator) createNewMigration(name string) {
 	timestamp := time.Now().Unix()
 
 	// Create the filenames
-	upFilename := fmt.Sprintf("%s/%d_%s.up.surql", mg.FoldersConfig.Database.Migrations, timestamp, name)
-	downFilename := fmt.Sprintf("%s/%d_%s.down.surql", mg.FoldersConfig.Database.Migrations, timestamp, name)
+	upFilename := fmt.Sprintf("%s/%d_%s.up.surql", mg.FoldersConfig.Migrations, timestamp, name)
+	downFilename := fmt.Sprintf("%s/%d_%s.down.surql", mg.FoldersConfig.Migrations, timestamp, name)
 
 	// Create the up file
 	if err := ensureDir(upFilename); err != nil {

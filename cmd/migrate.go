@@ -12,7 +12,7 @@ import (
 
 // migrationsCmd represents the migrations command
 var migrationsCmd = &cobra.Command{
-	Use:        "migrations",
+	Use:        "migrate",
 	Short:      "Provides sets of commands to run migrations like  'new' ,'up' and 'down' ",
 	Long:       ``,
 	ArgAliases: []string{"new", "up", "down"},

@@ -17,24 +17,18 @@ const (
 
 func defaultConfig() map[string]interface{} {
 	return map[string]interface{}{
-		"database": map[string]interface{}{
-			"connection": map[string]string{
-				"user":      "root",
-				"password":  "root",
-				"name":      "root",
-				"namespace": "root",
-			},
+		"database": map[string]string{
+			"user":      "root",
+			"password":  "root",
+			"name":      "root",
+			"namespace": "root",
 		},
-		"folders": map[string]interface{}{
-			"database": map[string]string{
-				"migrations": "database/migrations",
-				"events":     "database/events",
-			},
+		"folders": map[string]string{
+			"migrations": "database/migrations",
+			"events":     "database/events",
 		},
-		"networks": map[string]interface{}{
-			"websocket": map[string]string{
-				"endpoint": "ws://localhost:8000/rpc",
-			},
+		"networks": map[string]string{
+			"endpoint": "ws://localhost:8000/rpc",
 		},
 	}
 }

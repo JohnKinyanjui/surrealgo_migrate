@@ -17,26 +17,17 @@ type Migrator struct {
 	db  *surrealdb.DB `yaml:"-"`
 	err error         `yaml:"-"`
 
+	Endpoint       string `yaml:"endpoint"`
 	DatabaseConfig struct {
-		Connection struct {
-			User      string `yaml:"user"`
-			Password  string `yaml:"password"`
-			Name      string `yaml:"name"`
-			Namespace string `yaml:"namespace"`
-		} `yaml:"connection"`
+		User      string `yaml:"user"`
+		Password  string `yaml:"password"`
+		Name      string `yaml:"name"`
+		Namespace string `yaml:"namespace"`
 	} `yaml:"database"`
 	FoldersConfig struct {
-		Database struct {
-			Migrations string `yaml:"migrations"`
-			Schemas    string `yaml:"schemas"`
-			Events     string `yaml:"events"`
-		} `yaml:"database"`
+		Migrations string `yaml:"migrations"`
+		Events     string `yaml:"events"`
 	} `yaml:"folders"`
-	NetworksConfig struct {
-		Websocket struct {
-			Endpoint string `yaml:"endpoint"`
-		} `yaml:"websocket"`
-	} `yaml:"networks"`
 }
 
 func Migrate() *Migrator {
@@ -64,13 +55,14 @@ func (mg *Migrator) Initialize() *Migrator {
 	}
 
 	_, err = mg.db.Query(fmt.Sprintf(`
-	if (select count() from surreal_migrations) = 0 {
-		return create %s content {
-			"updated_at": time::now(),
-			"last_migration_id" : "0",
-			"last_event_id": "0"
-		};
-	})
+		let $m = select * from surreal_migrations;
+		if count(m) = 0 {
+		    return create %s content {
+		        "updated_at": time::now(),
+		        "last_migration_id" : "0",
+		        "last_event_id": "0"
+		    };
+		}
 	`, migration_table), nil)
 
 	if err != nil {
@@ -99,7 +91,7 @@ func (mg *Migrator) Exec(migrationType string, folder string) {
 	}
 
 	files := []string{}
-	err := filepath.Walk(mg.FoldersConfig.Database.Migrations, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(mg.FoldersConfig.Migrations, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -164,11 +156,11 @@ func (mg *Migrator) Migrate(file, migrationName, migrationType string) {
 
 	_, err = mg.db.Query(fmt.Sprintf(`
 				begin transaction;
-	
+
 				update surreal_migrations:initial SET last_migration_id = $last_migration_id;
-	
+
 				%s
-	
+
 				commit transaction;
 			`, text), map[string]string{
 		"last_migration_id": migrationName,
