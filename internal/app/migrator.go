@@ -94,6 +94,7 @@ func (mg *Migrator) Exec(migrationType string, folderType string) {
 	if folderType == "events" {
 		folder = mg.FoldersConfig.Events
 	}
+
 	files := []string{}
 	err := filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -137,15 +138,17 @@ func (mg *Migrator) Exec(migrationType string, folderType string) {
 		} else if migrationType == "down" {
 			if current == 0 {
 				log.Println("No available migrations to be migrated down")
+				break
+
 			} else {
-				if migration.LastMigrationId == fileName {
+				if migration.LastMigrationId == migrationName {
 					newMigraionName, err := mg.findPreviousMigration(migrations, current)
 					if err != nil {
 						log.Fatal("unable to migrate down reason: ", err)
 						return
 					}
 
-					mg.Migrate(fileName, strconv.Itoa(newMigraionName), migrationType)
+					mg.Migrate(file, strconv.Itoa(newMigraionName), migrationType, migrationName)
 				}
 			}
 		}
@@ -157,7 +160,9 @@ func (mg *Migrator) Exec(migrationType string, folderType string) {
 
 }
 
-func (mg *Migrator) Migrate(file, migrationName, migrationType string) {
+// query
+// extra params is used in down to get the file name where down query is
+func (mg *Migrator) Migrate(file, migrationName, migrationType string, extras ...string) {
 	content, err := os.ReadFile(file)
 	if err != nil {
 		fmt.Println("Error reading file:", err)
@@ -178,7 +183,7 @@ func (mg *Migrator) Migrate(file, migrationName, migrationType string) {
 		"last_migration_id": migrationName,
 	})
 	if err != nil {
-		log.Fatalf("unable to migrate %s reason: %s", migrationName, err.Error())
+		log.Fatalf("unable to migrate %s reason: %s", extras[0], err.Error())
 		return
 	}
 
