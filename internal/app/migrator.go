@@ -135,7 +135,7 @@ func (mg *Migrator) Exec(migrationType string, folderType string) {
 				migrated = true
 			}
 		} else if migrationType == "down" {
-			if current != 0 {
+			if current == 0 {
 				log.Println("No available migrations to be migrated down")
 			} else {
 				if migration.LastMigrationId == fileName {
