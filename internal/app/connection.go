@@ -1,30 +1,32 @@
 package app
 
 import (
+	"log"
+
 	"github.com/spf13/viper"
 	"github.com/surrealdb/surrealdb.go"
 )
 
 func (mg *Migrator) getDatabase() error {
 	// Initialize Viper and read the configuration file
-
+	log.Println(mg)
 	// Initialize the SurrealDB connection
-	db, err := surrealdb.New(viper.GetString(mg.Endpoint))
+	db, err := surrealdb.New(mg.Endpoint)
 	if err != nil {
 		return err
 	}
 
 	// Sign in to the database
 	signInData := map[string]interface{}{
-		"user": viper.GetString(mg.DatabaseConfig.User),
-		"pass": viper.GetString(mg.DatabaseConfig.Password),
+		"user": mg.DatabaseConfig.User,
+		"pass": mg.DatabaseConfig.Password,
 	}
 	if _, err := db.Signin(signInData); err != nil {
 		return err
 	}
 
 	// Use the specified database and namespace
-	if _, err := db.Use(viper.GetString(mg.DatabaseConfig.Name), viper.GetString(mg.DatabaseConfig.Namespace)); err != nil {
+	if _, err := db.Use(mg.DatabaseConfig.Name, mg.DatabaseConfig.Namespace); err != nil {
 		return err
 	}
 

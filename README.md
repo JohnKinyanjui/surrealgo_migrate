@@ -12,7 +12,7 @@ Key Commands
 1. Init: Initializes a project to use surrealgo_migrate.This create a config file which you can add your database url, credentials and also the folder stucture:
 
 ```bash
-surrealgo_migrate init
+surrealgo init
 ```
 
 Example of config (surrealgo.yaml)
