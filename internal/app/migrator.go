@@ -124,6 +124,7 @@ func (mg *Migrator) Exec(migrationType string, folderType string) {
 	current, _ := strconv.Atoi(migration.LastMigrationId)
 	migrations := mg.getMigrations(files)
 
+	migrated := false
 	for _, file := range files {
 		fileName := filepath.Base(file)
 		migrationName := strings.Split(fileName, "_")[0]
@@ -132,6 +133,7 @@ func (mg *Migrator) Exec(migrationType string, folderType string) {
 		if migrationType == "up" {
 			if timestamp > current {
 				mg.Migrate(file, migrationName, migrationType)
+				migrated = true
 			}
 		} else if migrationType == "down" {
 			if current != 0 {
@@ -148,6 +150,10 @@ func (mg *Migrator) Exec(migrationType string, folderType string) {
 				}
 			}
 		}
+	}
+
+	if !migrated {
+		log.Println("No available migrations to be migrated up")
 	}
 
 }
