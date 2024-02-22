@@ -17,7 +17,7 @@ type Migration struct {
 }
 
 func (mg *Migrator) getMigration() (*Migration, error) {
-	var migrations []Migration
+	var migrations Migration
 	data, err := mg.db.Select(migration_table)
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func (mg *Migrator) getMigration() (*Migration, error) {
 		return nil, err
 	}
 
-	return &migrations[0], nil
+	return &migrations, nil
 }
 
 func (mg *Migrator) createNewMigration(name string) {

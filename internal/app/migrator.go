@@ -85,13 +85,18 @@ func (mg *Migrator) New(migration string) {
 	mg.createNewMigration(migration)
 }
 
-func (mg *Migrator) Exec(migrationType string, folder string) {
+func (mg *Migrator) Exec(migrationType string, folderType string) {
+	log.Println("migrate up")
 	if mg.db == nil {
 		log.Fatalf("make sure the database is connected")
 	}
 
+	folder := mg.FoldersConfig.Migrations
+	if folderType == "events" {
+		folder = mg.FoldersConfig.Events
+	}
 	files := []string{}
-	err := filepath.Walk(mg.FoldersConfig.Migrations, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -106,12 +111,14 @@ func (mg *Migrator) Exec(migrationType string, folder string) {
 		}
 		return nil
 	})
+
 	if err != nil {
-		log.Fatal("unable to get files reason: ", err)
+		log.Fatalf("unable to get files from '%s' reason: %s", folder, err.Error())
 	}
 
 	migration, err := mg.getMigration()
 	if err != nil {
+		log.Fatalf("unable to get current migrations reason: %s", err.Error())
 		return
 	}
 	current, _ := strconv.Atoi(migration.LastMigrationId)
@@ -124,7 +131,7 @@ func (mg *Migrator) Exec(migrationType string, folder string) {
 
 		if migrationType == "up" {
 			if timestamp > current {
-				mg.Migrate(fileName, migrationName, migrationType)
+				mg.Migrate(file, migrationName, migrationType)
 			}
 		} else if migrationType == "down" {
 			if current != 0 {

@@ -1,15 +1,11 @@
 package app
 
 import (
-	"log"
-
-	"github.com/spf13/viper"
 	"github.com/surrealdb/surrealdb.go"
 )
 
 func (mg *Migrator) getDatabase() error {
 	// Initialize Viper and read the configuration file
-	log.Println(mg)
 	// Initialize the SurrealDB connection
 	db, err := surrealdb.New(mg.Endpoint)
 	if err != nil {
