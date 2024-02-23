@@ -132,7 +132,7 @@ func (mg *Migrator) Exec(migrationType string, folderType string) {
 
 		if migrationType == "up" {
 			if timestamp > current {
-				mg.Migrate(file, migrationName, migrationType)
+				mg.Migrate(file, migrationName, migrationType, migrationName)
 				migrated = true
 			}
 		} else if migrationType == "down" {
