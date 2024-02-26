@@ -32,21 +32,31 @@ folders:
 ```
 
 2. New Migration:  Creates new up and down migration files and make sure you always the name of your migration
+note: event and migrate are different, event generates files you can use to write event functions to make it clean and migrate is used to do define tables, field etc
 
 ```Bash
 surrealgo_migrate migrate new add_users
+
+surrealgo_migrate event new add_users_event
+
 ```
 
 3. Up: Applies pending migrations in order based on their timestamps. Ensures database updates progress systematically.
 
 ```Bash
 surrealgo_migrate migrate up
+
+surrealgo_migrate event up
+
 ```
 
 4. Down: Reverts the most recent migration. This helps with undoing changes or testing in development.
 
 ```Bash
 surrealgo_migrate migrate down
+
+surrealgo_migrate event down
+
 ```
 
 ### Important: Transactional Migrations
