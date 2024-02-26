@@ -31,13 +31,13 @@ func (mg *Migrator) getMigration() (*Migration, error) {
 	return &migrations, nil
 }
 
-func (mg *Migrator) createNewMigration(name string) {
+func (mg *Migrator) createNewMigration(name string, folder string) {
 	// Get the current timestamp
 	timestamp := time.Now().Unix()
 
 	// Create the filenames
-	upFilename := fmt.Sprintf("%s/%d_%s.up.surql", mg.FoldersConfig.Migrations, timestamp, name)
-	downFilename := fmt.Sprintf("%s/%d_%s.down.surql", mg.FoldersConfig.Migrations, timestamp, name)
+	upFilename := fmt.Sprintf("%s/%d_%s.up.surql", folder, timestamp, name)
+	downFilename := fmt.Sprintf("%s/%d_%s.down.surql", folder, timestamp, name)
 
 	// Create the up file
 	if err := ensureDir(upFilename); err != nil {

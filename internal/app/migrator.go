@@ -76,13 +76,18 @@ func (mg *Migrator) InitConfig() {
 	checkConfig()
 }
 
-func (mg *Migrator) New(migration string) {
+func (mg *Migrator) New(migration string, folderType string) {
 	if mg.err != nil {
 		log.Println("unable to get configuration error: ", mg.err.Error())
 		return
 	}
 
-	mg.createNewMigration(migration)
+	folder := mg.FoldersConfig.Migrations
+	if folderType == "events" {
+		folder = mg.FoldersConfig.Events
+	}
+
+	mg.createNewMigration(migration, folder)
 }
 
 func (mg *Migrator) Exec(migrationType string, folderType string) {

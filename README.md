@@ -1,4 +1,4 @@
-# surrealgo
+# surrealgo ( v1.0.1 )
 
 **surrealgo_migrate** is a tool designed to streamline migrations for SurrealDB databases, simplifying the management of structural changes and keeping your workflow organized.
 
@@ -30,8 +30,6 @@ folders:
     migrations: internal/database/migrations
 
 ```
-
-idk am feeling this config is abit confusing i hope i can make it easy for you guys if you have a better format let me know issues.
 
 2. New Migration:  Creates new up and down migration files and make sure you always the name of your migration
 
