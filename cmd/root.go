@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version = "v1.0.1"
+var version = "v1.0.2"
 var BuildDate = "2024-02-26"
 var versionB bool
 
