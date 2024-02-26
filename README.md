@@ -1,4 +1,4 @@
-# surrealgo ( v1.0.1 )
+# surrealgo ( v1.0.2 )
 
 **surrealgo_migrate** is a tool designed to streamline migrations for SurrealDB databases, simplifying the management of structural changes and keeping your workflow organized.
 
