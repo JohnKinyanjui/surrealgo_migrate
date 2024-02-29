@@ -121,16 +121,17 @@ func (mg *Migrator) Exec(migrationType string, folderType string) {
 		log.Fatalf("unable to get files from '%s' reason: %s", folder, err.Error())
 	}
 
-	migration, err := mg.getMigration()
-	if err != nil {
-		log.Fatalf("unable to get current migrations reason: %s", err.Error())
-		return
-	}
-	current, _ := strconv.Atoi(migration.LastMigrationId)
 	migrations := mg.getMigrations(files)
 
 	migrated := false
 	for _, file := range files {
+		migration, err := mg.getMigration()
+		if err != nil {
+			log.Fatalf("unable to get current migrations reason: %s", err.Error())
+			return
+		}
+
+		current, _ := strconv.Atoi(migration.LastMigrationId)
 		fileName := filepath.Base(file)
 		migrationName := strings.Split(fileName, "_")[0]
 		timestamp, _ := strconv.Atoi(migrationName)
@@ -154,6 +155,7 @@ func (mg *Migrator) Exec(migrationType string, folderType string) {
 					}
 
 					mg.Migrate(file, strconv.Itoa(newMigraionName), migrationType, migrationName)
+					break
 				}
 			}
 		}
@@ -179,18 +181,21 @@ func (mg *Migrator) Migrate(file, migrationName, migrationType string, extras ..
 	_, err = mg.db.Query(fmt.Sprintf(`
 				begin transaction;
 
-				update surreal_migrations:initial SET last_migration_id = $last_migration_id;
+				update surreal_migrations:initial SET last_migration_id = "%s";
 
 				%s
 
 				commit transaction;
-			`, text), map[string]string{
-		"last_migration_id": migrationName,
-	})
+			`, migrationName, text), map[string]string{})
 	if err != nil {
 		log.Fatalf("unable to migrate %s reason: %s", extras[0], err.Error())
 		return
 	}
 
-	log.Printf("%s migrated %s successfully \n", migrationName, migrationType)
+	if migrationType == "up" {
+		log.Printf("%s migrated %s successfully \n", migrationName, migrationType)
+	} else {
+		log.Printf("%s migrated %s successfully \n", extras[0], migrationType)
+
+	}
 }
