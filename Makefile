@@ -11,5 +11,6 @@ install:
 	go install -ldflags "-X 'main.Version=${v1.0.3}' -X 'main.BuildDate=${BUILD_DATE}'"
 
 push:
+	git push
 	git tag ${VERSION}
 	git push origin --tags
