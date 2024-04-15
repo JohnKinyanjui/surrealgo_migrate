@@ -30,6 +30,7 @@ type Migrator struct {
 	} `yaml:"folders"`
 }
 
+// gets yaml configuration file and read it
 func Migrate() *Migrator {
 	viper.SetConfigName("gosurreal")
 	viper.SetConfigType("yaml")
@@ -47,7 +48,7 @@ func Migrate() *Migrator {
 	return &migrator
 }
 
-// inita
+// check if table exists
 func (mg *Migrator) Initialize() *Migrator {
 	err := mg.getDatabase()
 

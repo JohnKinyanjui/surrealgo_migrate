@@ -2,6 +2,7 @@
 
 **surrealgo_migrate** is a tool designed to streamline migrations for SurrealDB databases, simplifying the management of structural changes and keeping your workflow organized.
 
+it now surreal db v1.4.0
 ## Installation
 ```bash
 go install github.com/JohnKinyanjui/surrealgo_migrate@latest
