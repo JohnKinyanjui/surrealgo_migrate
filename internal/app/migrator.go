@@ -47,6 +47,7 @@ func Migrate() *Migrator {
 	return &migrator
 }
 
+// inita
 func (mg *Migrator) Initialize() *Migrator {
 	err := mg.getDatabase()
 
