@@ -55,6 +55,8 @@ func (mg *Migrator) Initialize() *Migrator {
 	}
 
 	_, err = mg.db.Query(fmt.Sprintf(`
+		define table if not exists %s;
+		
 		let $m = select * from surreal_migrations;
 		if count(m) = 0 {
 		    return create %s content {
@@ -63,7 +65,7 @@ func (mg *Migrator) Initialize() *Migrator {
 		        "last_event_id": "0"
 		    };
 		}
-	`, migration_table), nil)
+	`, migration_table, migration_table), nil)
 
 	if err != nil {
 		log.Fatalf("unable to start migrations error: %s", err.Error())

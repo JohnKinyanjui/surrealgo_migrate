@@ -22,7 +22,7 @@ func (mg *Migrator) getDatabase() error {
 	}
 
 	// Use the specified database and namespace
-	if _, err := db.Use(mg.DatabaseConfig.Name, mg.DatabaseConfig.Namespace); err != nil {
+	if _, err := db.Use(mg.DatabaseConfig.Namespace, mg.DatabaseConfig.Name); err != nil {
 		return err
 	}
 
