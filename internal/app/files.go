@@ -13,6 +13,7 @@ type Migration struct {
 	surrealdb.Basemodel `table:"surreal_migrations"`
 
 	Updated         time.Time `json:"created_At"`
+	LastEventId     string    `json:"last_event_id"`
 	LastMigrationId string    `json:"last_migration_id"`
 }
 

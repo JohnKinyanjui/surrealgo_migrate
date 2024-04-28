@@ -135,14 +135,21 @@ func (mg *Migrator) Exec(migrationType string, folderType string) {
 			return
 		}
 
-		current, _ := strconv.Atoi(migration.LastMigrationId)
+		current := 0
+
+		if folderType == "events" {
+			current, _ = strconv.Atoi(migration.LastEventId)
+		} else {
+			current, _ = strconv.Atoi(migration.LastMigrationId)
+		}
+
 		fileName := filepath.Base(file)
 		migrationName := strings.Split(fileName, "_")[0]
 		timestamp, _ := strconv.Atoi(migrationName)
 
 		if migrationType == "up" {
 			if timestamp > current {
-				mg.Migrate(file, migrationName, migrationType, migrationName)
+				mg.Migrate(file, migrationName, migrationType, folderType == "events", migrationName)
 				migrated = true
 			}
 		} else if migrationType == "down" {
@@ -158,7 +165,7 @@ func (mg *Migrator) Exec(migrationType string, folderType string) {
 						return
 					}
 
-					mg.Migrate(file, strconv.Itoa(newMigraionName), migrationType, migrationName)
+					mg.Migrate(file, strconv.Itoa(newMigraionName), migrationType, folderType == "events", migrationName)
 					break
 				}
 			}
@@ -173,7 +180,7 @@ func (mg *Migrator) Exec(migrationType string, folderType string) {
 
 // query
 // extra params is used in down to get the file name where down query is
-func (mg *Migrator) Migrate(file, migrationName, migrationType string, extras ...string) {
+func (mg *Migrator) Migrate(file, migrationName, migrationType string, events bool, extras ...string) {
 	content, err := os.ReadFile(file)
 	if err != nil {
 		fmt.Println("Error reading file:", err)
@@ -182,24 +189,51 @@ func (mg *Migrator) Migrate(file, migrationName, migrationType string, extras ..
 
 	text := string(content)
 
-	_, err = mg.db.Query(fmt.Sprintf(`
-				begin transaction;
+	if events {
+		if data, err := mg.db.Query(fmt.Sprintf(`
+		begin transaction;
 
-				update surreal_migrations:initial SET last_migration_id = "%s";
+		update surreal_migrations:initial merge {
+			last_event_id: "%s"
+		};
 
-				%s
+		%s
 
-				commit transaction;
-			`, migrationName, text), map[string]string{})
-	if err != nil {
-		log.Fatalf("unable to migrate %s reason: %s", extras[0], err.Error())
-		return
-	}
+		commit transaction;
+	`, migrationName, text), map[string]string{}); err != nil {
+			log.Fatalf("unable to migrate %s reason: %s", extras[0], err.Error())
+			return
+		} else {
+			log.Println(data)
+		}
 
-	if migrationType == "up" {
-		log.Printf("%s migrated %s successfully \n", migrationName, migrationType)
+		if migrationType == "up" {
+			log.Printf("%s event migrated %s successfully \n", migrationName, migrationType)
+		} else {
+			log.Printf("%s event migrated %s successfully \n", extras[0], migrationType)
+		}
+
 	} else {
-		log.Printf("%s migrated %s successfully \n", extras[0], migrationType)
+		if _, err := mg.db.Query(fmt.Sprintf(`
+		begin transaction;
 
+		update surreal_migrations:initial merge {
+			last_migration_id: "%s"
+		};
+
+		%s
+
+		commit transaction;
+	`, migrationName, text), map[string]string{}); err != nil {
+			log.Fatalf("unable to migrate %s reason: %s", extras[0], err.Error())
+			return
+		}
+
+		if migrationType == "up" {
+			log.Printf("%s migrated %s successfully \n", migrationName, migrationType)
+		} else {
+			log.Printf("%s migrated %s successfully \n", extras[0], migrationType)
+		}
 	}
+
 }

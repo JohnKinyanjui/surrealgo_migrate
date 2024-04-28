@@ -15,7 +15,7 @@ var versionCmd = &cobra.Command{
 	Short: "Check current cli version",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		var version = "v1.0.4"
+		var version = "v1.0.6"
 		fmt.Println("surrealgo_migration version: ", version)
 	},
 }
