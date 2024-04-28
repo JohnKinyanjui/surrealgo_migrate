@@ -190,7 +190,7 @@ func (mg *Migrator) Migrate(file, migrationName, migrationType string, events bo
 	text := string(content)
 
 	if events {
-		if data, err := mg.db.Query(fmt.Sprintf(`
+		if _, err := mg.db.Query(fmt.Sprintf(`
 		begin transaction;
 
 		update surreal_migrations:initial merge {
@@ -203,10 +203,7 @@ func (mg *Migrator) Migrate(file, migrationName, migrationType string, events bo
 	`, migrationName, text), map[string]string{}); err != nil {
 			log.Fatalf("unable to migrate %s reason: %s", extras[0], err.Error())
 			return
-		} else {
-			log.Println(data)
 		}
-
 		if migrationType == "up" {
 			log.Printf("%s event migrated %s successfully \n", migrationName, migrationType)
 		} else {
