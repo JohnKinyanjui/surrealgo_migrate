@@ -52,13 +52,13 @@ surrealgo_migrate migrate up --path [MIGRATION_PATH] --host [HOST] --db [DATABAS
 Example:
 
 ```bash
-surrealgo_migrate migrate up --path /database/migrations --host localhost:8000 --db root --ns root --user root --pass root --path /internal/database/migrations
+surrealgo_migrate migrate up --path database/migrations --host localhost:8000 --db root --ns root --user root --pass root --path /internal/database/migrations
 ```
 
 For secure connections, add the `--ssl true` flag:
 
 ```bash
-surrealgo_migrate migrate up --path /database/migrations --host localhost:8000 --db root --ns root --user root --pass root --ssl true
+surrealgo_migrate migrate up --path database/migrations --host localhost:8000 --db root --ns root --user root --pass root --ssl true
 ```
 
 ### Rolling Back Migrations
