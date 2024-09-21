@@ -1,68 +1,90 @@
 # SurrealGo Migrate
 
-**surrealgo_migrate** is a tool designed to streamline migrations for SurrealDB databases, simplifying the management of structural changes and keeping your workflow organized.
+SurrealGo Migrate is a powerful tool designed to streamline database migrations for SurrealDB, simplifying the management of structural changes and keeping your workflow organized. It now supports SurrealDB v2.0.1.
 
-it now surreal db v1.4.0
+## Features
+
+- Create new migration files with timestamps
+- Execute "up" and "down" migrations
+- Support for surrealql migrations
+- Transactional migrations for data integrity
+- SSL support for secure connections
+
 ## Installation
+
+Install SurrealGo Migrate using the following command:
+
 ```bash
 go install github.com/JohnKinyanjui/surrealgo_migrate@latest
 ```
 
-Key Commands
+## Usage
 
-1. Init: Initializes a project to use surrealgo_migrate.This create a config file which you can add your database url, credentials and also the folder stucture:
+### Creating a New Migration
+
+To create a new migration, use the following command:
 
 ```bash
-surrealgo_migrate init
+surrealgo_migrate --path [MIGRATION_PATH] migrate new [FILE_NAME]
 ```
 
-Example of config (surrealgo.yaml)
-```yaml
-endpoint: ws://localhost:8000/rpc
+Example:
 
-database:
-    name: root
-    namespace: root
-    password: root
-    user: root
-
-folders:
-    events: internal/database/events
-    migrations: internal/database/migrations
-
+```bash
+surrealgo_migrate migrate --path database/migrations new add_users
 ```
 
-2. New Migration:  Creates new up and down migration files and make sure you always the name of your migration
-note: event and migrate are different, event generates files you can use to write event functions to make it clean and migrate is used to do define tables, field etc
+This command generates new "up" and "down" migration files. Always provide a descriptive name for your migration.
 
-```Bash
-surrealgo_migrate migrate new add_users
+**Note:** The `event` and `migrate` commands serve different purposes:
 
-surrealgo_migrate event new add_users_event
+- `event` generates files for writing clean event functions
+- `migrate` is used to define tables, fields, and other database structures
 
+### Applying Migrations
+
+To apply pending migrations, use the "up" command:
+
+```bash
+surrealgo_migrate migrate up --path [MIGRATION_PATH] --host [HOST] --db [DATABASE] --ns [NAMESPACE] --user [USERNAME] --pass [PASSWORD]
 ```
 
-3. Up: Applies pending migrations in order based on their timestamps. Ensures database updates progress systematically.
+Example:
 
-```Bash
-surrealgo_migrate migrate up
-
-surrealgo_migrate event up
-
+```bash
+surrealgo_migrate migrate up --path /database/migrations --host localhost:8000 --db root --ns root --user root --pass root --path /internal/database/migrations
 ```
 
-4. Down: Reverts the most recent migration. This helps with undoing changes or testing in development.
+For secure connections, add the `--ssl true` flag:
 
-```Bash
-surrealgo_migrate migrate down
-
-surrealgo_migrate event down
-
+```bash
+surrealgo_migrate migrate up --path /database/migrations --host localhost:8000 --db root --ns root --user root --pass root --ssl true
 ```
 
-### Important: Transactional Migrations
+### Rolling Back Migrations
 
-Each migration (both up and down) is executed within a SurrealDB transaction. This provides the following benefits:
+To roll back migrations, use the "down" command (syntax similar to "up" command):
 
-1. Atomicity: If any part of a migration fails, the entire migration is rolled back, preventing your database from being left in an inconsistent state.
-2. Data Integrity: Transactions help ensure your database remains valid and consistent throughout the migration process.
+```bash
+surrealgo_migrate migrate down --host [HOST] --db [DATABASE] --ns [NAMESPACE] --user [USERNAME] --pass [PASSWORD] --path [MIGRATION_PATH]
+```
+
+## Transactional Migrations
+
+SurrealGo Migrate executes each migration (both up and down) within a SurrealDB transaction. This approach offers several benefits:
+
+1. **Atomicity**: If any part of a migration fails, the entire migration is rolled back. This prevents your database from being left in an inconsistent state.
+2. **Data Integrity**: Transactions help ensure your database remains valid and consistent throughout the migration process.
+3. **Reliability**: In case of unexpected errors or interruptions, your database won't be partially migrated.
+
+## Contributing
+
+Contributions to SurrealGo Migrate are welcome! Please feel free to submit pull requests, create issues, or suggest improvements.
+
+## License
+
+[Insert your license information here]
+
+## Support
+
+For questions, issues, or feature requests, please [open an issue](https://github.com/JohnKinyanjui/surrealgo_migrate/issues) on our GitHub repository.

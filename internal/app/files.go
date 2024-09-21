@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -39,7 +40,6 @@ func (mg *Migrator) createNewMigration(name string, folder string) {
 	// Create the filenames
 	upFilename := fmt.Sprintf("%s/%d_%s.up.surql", folder, timestamp, name)
 	downFilename := fmt.Sprintf("%s/%d_%s.down.surql", folder, timestamp, name)
-
 	// Create the up file
 	if err := ensureDir(upFilename); err != nil {
 		fmt.Println("Error creating up file:", err)
@@ -58,17 +58,26 @@ func (mg *Migrator) createNewMigration(name string, folder string) {
 
 func ensureDir(fileName string) error {
 	dirName := filepath.Dir(fileName)
-	if _, serr := os.Stat(dirName); serr != nil {
-		merr := os.MkdirAll(dirName, os.ModePerm)
-		if merr != nil {
-			return merr
+
+	if _, err := os.Stat(dirName); err != nil {
+		if os.IsNotExist(err) {
+			log.Printf("Directory does not exist, creating it")
+			if err := os.MkdirAll(dirName, os.ModePerm); err != nil {
+				log.Printf("Error creating directory: %v", err)
+				return err
+			}
+		} else {
+			log.Printf("Error checking directory: %v", err)
+			return err
 		}
 	}
 
-	_, err := os.Create(fileName)
+	file, err := os.Create(fileName)
 	if err != nil {
+		log.Printf("Error creating file: %v", err)
 		return err
 	}
+	defer file.Close()
 
 	return nil
 }

@@ -4,7 +4,7 @@ init:
 
 # used to create new migrations 
 migrations-new:
-	surrealgo_migrate migrations new add_users
+	surrealgo_migrate --path /database/migrations -- migrate new add_users
 
 # used to run applications up migrates the latest files by checking the timestamp
 migrations-up:

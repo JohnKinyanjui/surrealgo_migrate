@@ -1,1 +1,0 @@
-REMOVE TABLE test_table;
