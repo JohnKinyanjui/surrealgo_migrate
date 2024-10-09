@@ -81,10 +81,6 @@ SurrealGo Migrate executes each migration (both up and down) within a SurrealDB 
 
 Contributions to SurrealGo Migrate are welcome! Please feel free to submit pull requests, create issues, or suggest improvements.
 
-## License
-
-[Insert your license information here]
-
 ## Support
 
 For questions, issues, or feature requests, please [open an issue](https://github.com/JohnKinyanjui/surrealgo_migrate/issues) on our GitHub repository.
